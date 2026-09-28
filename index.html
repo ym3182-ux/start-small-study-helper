@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Start Small Study Helper</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; padding: 28px 18px; background: #f5f2ec; color: #28352f; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      main { width: min(100%, 590px); margin: 0 auto; }
+      header { text-align: center; margin: 48px 0 30px; }
+      h1 { margin: 0; font-family: Georgia, serif; font-size: clamp(2.6rem, 10vw, 4.2rem); font-weight: 500; letter-spacing: -0.06em; }
+      header p { margin: 10px auto 0; color: #65736b; font-size: 1rem; }
+      .stars { display: inline-flex; align-items: center; gap: 6px; margin-top: 18px; padding: 7px 12px; border-radius: 999px; background: #fff4cf; color: #71540a; font-size: 0.88rem; font-weight: 750; }
+      .panel { padding: 0; }
+      #studyForm, #plan { padding: clamp(24px, 6vw, 38px); border: 1px solid #e4e0d8; border-radius: 24px; background: rgba(255, 255, 255, 0.82); box-shadow: 0 16px 45px rgba(58, 67, 60, 0.08); }
+      body.has-plan #studyForm { display: none; }
+      fieldset { margin: 0 0 24px; padding: 0; border: 0; }
+      legend { margin-bottom: 10px; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #65736b; }
+      .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+      label.choice { display: inline-flex; align-items: center; min-height: 42px; padding: 8px 13px; border: 1px solid #ddd9d0; border-radius: 999px; cursor: pointer; font-size: 0.95rem; }
+      label.choice:has(input:checked) { border-color: #46695d; background: #e9f0ea; color: #25483b; }
+      input { accent-color: #46695d; }
+      button { width: 100%; padding: 13px 18px; border: 0; border-radius: 999px; background: #315f50; color: #fff; font: inherit; font-weight: 750; cursor: pointer; }
+      button:hover, button:focus-visible { background: #23483d; }
+      button:disabled { background: #b8c1ba; color: #f7f8f5; cursor: not-allowed; }
+      button:disabled:hover { background: #b8c1ba; }
+      #plan { display: none; margin-top: 0; }
+      #plan.visible { display: block; }
+      #plan h2 { margin: 0; font-family: Georgia, serif; font-size: 2rem; font-weight: 500; }
+      #plan p { margin: 8px 0; line-height: 1.55; }
+      #planIntro { color: #65736b; }
+      #plan ol { margin: 22px 0; padding: 0; list-style: none; }
+      .task { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #eeeae3; line-height: 1.45; cursor: pointer; }
+      .task input { width: 18px; height: 18px; margin-top: 2px; flex: none; }
+      .task:has(input:checked) span { color: #7c8882; text-decoration: line-through; }
+      #confirmPlan { margin: 4px 0 2px; }
+      .note { color: #65736b; font-size: 0.86rem; }
+      .timer { display: none; margin-top: 26px; padding: 22px 12px; border-top: 1px solid #e4e0d8; border-bottom: 1px solid #e4e0d8; text-align: center; }
+      .timer.visible { display: block; }
+      .timer h3 { margin: 0; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; color: #65736b; }
+      #timerDisplay { margin: 5px 0 13px; font-family: Georgia, serif; font-variant-numeric: tabular-nums; font-size: clamp(3.2rem, 15vw, 5rem); font-weight: 500; letter-spacing: -0.06em; }
+      .timer-controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
+      .timer-controls button { width: auto; padding: 9px 14px; font-size: 0.9rem; }
+      .timer-controls .secondary, .link { border: 1px solid #cfd8d0; background: transparent; color: #315f50; }
+      .feedback { margin-top: 24px; }
+      #completionSection { display: none; }
+      #completionSection.visible { display: block; }
+      #afterFocus { display: none; }
+      #afterFocus.visible { display: block; }
+      .bonus { display: inline-block; margin: 0 0 4px; color: #996f00; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+      .feedback p { font-weight: 600; }
+      .feedback button { width: auto; margin: 4px 4px 4px 0; padding: 8px 12px; border: 1px solid #cfd8d0; background: transparent; color: #315f50; font-size: 0.88rem; }
+      .feedback button:hover, .feedback button:focus-visible { background: #e9f0ea; }
+      #response, #completionResponse { min-height: 24px; color: #46695d; font-weight: 650; }
+      .link { width: auto; margin-top: 24px; padding: 8px 13px; font-size: 0.85rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Start small</h1>
+        <p>One calm study session.</p>
+        <div class="stars" aria-live="polite">✨ <span id="starCount">0</span> focus stars</div>
+      </header>
+      <section class="panel" aria-label="Study check-in">
+        <form id="studyForm">
+          <fieldset>
+            <legend>Energy</legend>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="energy" value="low" checked /> Low</label>
+              <label class="choice"><input type="radio" name="energy" value="medium" /> Medium</label>
+              <label class="choice"><input type="radio" name="energy" value="high" /> High</label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Time</legend>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="time" value="5" checked /> 5 minutes</label>
+              <label class="choice"><input type="radio" name="time" value="15" /> 15 minutes</label>
+              <label class="choice"><input type="radio" name="time" value="30" /> 30 minutes</label>
+            </div>
+          </fieldset>
+          <button type="submit">Create my plan</button>
+        </form>
+        <section id="plan" aria-live="polite">
+          <h2 id="planTitle">Your plan</h2>
+          <p id="planIntro"></p>
+          <ol id="planSteps"></ol>
+          <button type="button" id="confirmPlan">Confirm & start focus</button>
+          <section class="timer" id="timer" aria-labelledby="timerTitle">
+            <h3 id="timerTitle">Focus timer</h3>
+            <p id="timerDisplay" aria-live="polite">05:00</p>
+            <div class="timer-controls">
+              <button type="button" id="startTimer">Start focus</button>
+              <button type="button" id="pauseTimer" class="secondary">Pause</button>
+              <button type="button" id="resetTimer" class="secondary">Reset</button>
+            </div>
+            <p class="note" id="timerMessage">Ready when you are.</p>
+          </section>
+          <section class="feedback" id="completionSection" aria-labelledby="completionTitle">
+            <h3 id="completionTitle">Complete</h3>
+            <p class="note">Unlocks when the timer ends.</p>
+            <button type="button" id="completeTask" disabled>Locked</button>
+            <p id="completionResponse" aria-live="polite"></p>
+          </section>
+          <div class="feedback" id="afterFocus">
+            <span class="bonus">✨ Bonus reflection unlocked</span>
+            <p>How did it feel?</p>
+            <button type="button" data-feedback="tooMuch">Too much</button>
+            <button type="button" data-feedback="right">Just right</button>
+            <button type="button" data-feedback="tooLittle">More challenge</button>
+            <p id="response" aria-live="polite"></p>
+          </div>
+          <button type="button" id="changePlan" class="link">Change plan</button>
+        </section>
+      </section>
+    </main>
+    <script>
+      const plans = {
+        low: {
+          5: ["Open only the material you need.", "Read one heading or one short paragraph.", "Write one question or one key word."],
+          15: ["Choose one small section, not the whole assignment.", "Set a 10-minute timer and highlight two useful ideas.", "Use the final 5 minutes to write a one-sentence summary."],
+          30: ["Pick one task that has a clear finish line.", "Work for 20 minutes, with your phone out of reach.", "Take a 5-minute break, then spend 5 minutes noting what comes next."]
+        },
+        medium: {
+          5: ["Choose the next question or page.", "Set a five-minute timer.", "When it ends, decide whether you want one more round."],
+          15: ["Choose one focused goal: read, practice, or outline.", "Work for 12 minutes without switching tabs.", "Spend 3 minutes checking what you understand."],
+          30: ["Write one specific goal before you start.", "Work for 20 minutes on the most important piece.", "Take a 5-minute break, then use 5 minutes to review or organize your notes."]
+        },
+        high: {
+          5: ["Write the exact task you will finish first.", "Start immediately for five minutes.", "Leave a note that makes the next session easy to resume."],
+          15: ["Choose a challenging but realistic mini-goal.", "Work for 12 focused minutes.", "Use the final 3 minutes to check your answer or explain it in your own words."],
+          30: ["Choose one meaningful learning goal.", "Work in two focused 12-minute rounds with a short break between them.", "End by writing the first step for your next study session."]
+        }
+      };
+      let timerId;
+      let selectedMinutes = 5;
+      let secondsLeft = selectedMinutes * 60;
+      let isBreak = false;
+      let focusStars = Number(window.localStorage.getItem("focusStars")) || 0;
+
+      function showStars() {
+        document.querySelector("#starCount").textContent = focusStars;
+      }
+
+      showStars();
+
+      function showTime() {
+        const minutes = Math.floor(secondsLeft / 60).toString().padStart(2, "0");
+        const seconds = (secondsLeft % 60).toString().padStart(2, "0");
+        document.querySelector("#timerDisplay").textContent = `${minutes}:${seconds}`;
+      }
+
+      function pauseTimer() {
+        window.clearInterval(timerId);
+        timerId = undefined;
+        document.querySelector("#startTimer").textContent = isBreak ? "Start break" : "Start focus";
+      }
+
+      function startTimer() {
+        if (timerId) return;
+        document.querySelector("#startTimer").textContent = "Running...";
+        timerId = window.setInterval(() => {
+          secondsLeft -= 1;
+          showTime();
+          if (secondsLeft === 0) {
+            pauseTimer();
+            if (!isBreak) {
+              isBreak = true;
+              secondsLeft = 5 * 60;
+              document.querySelector("#timerTitle").textContent = "Focus complete";
+              document.querySelector("#timerMessage").textContent = "A 5-minute break is ready.";
+              document.querySelector("#completeTask").disabled = false;
+              document.querySelector("#completeTask").textContent = "Mark session complete";
+              document.querySelector("#completionSection").classList.add("visible");
+              showTime();
+            } else {
+              document.querySelector("#timerTitle").textContent = "Break complete";
+              document.querySelector("#timerMessage").textContent = "Break complete.";
+            }
+          }
+        }, 1000);
+      }
+
+      function resetTimer() {
+        pauseTimer();
+        isBreak = false;
+        secondsLeft = selectedMinutes * 60;
+        document.querySelector("#timerTitle").textContent = "Focus timer";
+        document.querySelector("#timerMessage").textContent = `Ready for ${selectedMinutes} minutes.`;
+        document.querySelector("#completeTask").disabled = true;
+        document.querySelector("#completeTask").textContent = "Locked";
+        document.querySelector("#completionSection").classList.remove("visible");
+        document.querySelector("#afterFocus").classList.remove("visible");
+        showTime();
+      }
+
+      document.querySelector("#studyForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        const energy = data.get("energy");
+        const time = data.get("time");
+        const energyWords = { low: "gentle", medium: "focused", high: "ambitious" };
+        const steps = plans[energy][time];
+        document.querySelector("#planTitle").textContent = `Your ${time}-minute plan`;
+        document.querySelector("#planIntro").textContent = `${energyWords[energy]} start · ${time} minutes`;
+        document.querySelector("#planSteps").innerHTML = steps.map((step) => `<li><label class="task"><input type="checkbox" /><span>${step}</span></label></li>`).join("");
+        document.querySelector("#plan").classList.add("visible");
+        document.querySelector("#timer").classList.remove("visible");
+        document.querySelector("#completionSection").classList.remove("visible");
+        document.querySelector("#confirmPlan").disabled = false;
+        document.querySelector("#confirmPlan").textContent = "Confirm & start focus";
+        document.querySelector("#response").textContent = "";
+        document.querySelector("#completionResponse").textContent = "";
+        document.querySelector("#afterFocus").classList.remove("visible");
+        document.querySelector("#completeTask").disabled = true;
+        document.querySelector("#completeTask").textContent = "Locked";
+        selectedMinutes = Number(time);
+        resetTimer();
+        document.body.classList.add("has-plan");
+      });
+
+      document.querySelector("#startTimer").addEventListener("click", startTimer);
+      document.querySelector("#pauseTimer").addEventListener("click", pauseTimer);
+      document.querySelector("#resetTimer").addEventListener("click", resetTimer);
+
+      document.querySelector("#confirmPlan").addEventListener("click", () => {
+        document.querySelector("#confirmPlan").disabled = true;
+        document.querySelector("#confirmPlan").textContent = "Focus started ✓";
+        document.querySelector("#timer").classList.add("visible");
+        startTimer();
+      });
+
+      document.querySelector("#completeTask").addEventListener("click", () => {
+        focusStars += 1;
+        window.localStorage.setItem("focusStars", focusStars);
+        showStars();
+        document.querySelector("#completionResponse").textContent = "✨ +1 focus star. You did it.";
+        document.querySelector("#completeTask").textContent = "Session completed ✓";
+        document.querySelector("#completeTask").disabled = true;
+        document.querySelector("#afterFocus").classList.add("visible");
+      });
+
+      document.querySelector("#changePlan").addEventListener("click", () => {
+        resetTimer();
+        document.querySelector("#plan").classList.remove("visible");
+        document.body.classList.remove("has-plan");
+      });
+
+      const responses = {
+        tooMuch: "Try a smaller version: choose only the first step, set a two-minute timer, and decide again after it ends.",
+        right: "Great. Keep this plan as your next small commitment, not a rule you have to finish perfectly.",
+        tooLittle: "Try adding one challenge: explain one idea in your own words or make one practice question after you finish the plan."
+      };
+
+      document.querySelectorAll("[data-feedback]").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelector("#response").textContent = responses[button.dataset.feedback];
+        });
+      });
+    </script>
+  </body>
+</html>
